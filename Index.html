@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Pham Quang Loc Audio</title>
+  <style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1f1c2c, #928dab);
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    padding-top: 40px;
+    margin:0;
+    transition: background-color 0.2s;
+  }
+
+body.dragover {
+  background-color: #2c2a3b;
+}
+
+  h2 {
+    color: #4fc3f7;
+    margin-bottom: 20px;
+  }
+
+  input[type="number"] {
+    width: 80px;
+    padding: 6px 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    margin-right: 10px;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+  }
+
+  input[type="number"]:focus {
+    border-color: #4fc3f7;
+    box-shadow: 0 0 5px rgba(79,195,247,0.5);
+  }
+
+  button {
+    margin: 5px 5px 15px 0;
+    padding: 8px 16px;
+    font-size: 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: #4fc3f7;
+    color: #121212;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+
+  button:hover {
+    background-color: #29b6f6;
+    transform: translateY(-1px);
+  }
+
+  video {
+    width: 320px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    background-color: #000;
+    display: none;
+  }
+
+@media (max-width: 400px) {
+  #mediaPlayer {
+    width: 90%;
+  }
+  #mediaPlayer.audio {
+    width: 90%;
+  }
+}
+
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @media (max-width: 400px) {
+    input[type="number"], video {
+      width: 90%;
+    }
+  }
+  </style>
+</head>
+<body>
+
+<h2>Chăm học lên nhé!!</h2>
+
+<!-- Input tùy chỉnh thời gian tua -->
+<div class="controls">
+  <label for="skipTime">Tua (giây):</label>
+  <input type="number" id="skipTime" value="5" min="1">
+  
+</div>
+<button onclick="openFilePicker()">📁 Chọn file từ máy</button>
+<input type="file" id="filePicker" accept="audio/*,video/*" style="display:none">
+
+<div id="dropArea"></div>
+
+<video id="mediaPlayer" style="display:none; background: none;" controls>
+  Trình duyệt của bạn không hỗ trợ media.
+</video>
+<div class="controls">
+  <button onclick="jumpBackward()">⏪ Tua lại</button>
+  <button onclick="jumpForward()">⏩ Tua tới</button>
+</div>
+
+<script>
+ // Chọn thẻ media
+const media = document.getElementById('mediaPlayer');
+const dropArea = document.getElementById('dropArea');
+const skipInput = document.getElementById('skipTime');
+const filePicker = document.getElementById('filePicker');
+
+// Hàm xử lý file
+function handleFile(file) {
+  const isMedia =
+    file.type.startsWith("audio/") ||
+    file.type.startsWith("video/") ||
+    /\.(mp3|wav|ogg|m4a|aac|flac|mp4|webm|mov|mkv)$/i.test(file.name);
+
+  if (isMedia) {
+    const fileURL = URL.createObjectURL(file);
+    media.src = fileURL;
+    media.load();
+    media.play();
+    media.style.display ="block";
+
+    if (file.type.startsWith("audio/")) {
+      media.style.height = "40px";
+    } else {
+      media.style.height = "auto";
+      media.style.maxHeight = "300px";
+    }
+  } else {
+    alert("Vui lòng chọn file âm thanh hoặc video hợp lệ!");
+  }
+}
+
+// Drag & Drop trên toàn bộ document
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropArea.classList.add('hover');
+});
+
+document.addEventListener('dragleave', e => {
+  dropArea.classList.remove('hover');
+});
+
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  dropArea.classList.remove('hover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+// Nút chọn file
+function openFilePicker() {
+  filePicker.click();
+}
+
+filePicker.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) handleFile(file);
+});
+
+// Tua nhanh/lùi
+function getSkipSeconds() {
+  const val = parseFloat(skipInput.value);
+  return isNaN(val) || val <= 0 ? 5 : val;
+}
+
+function jumpBackward() {
+  const skip = getSkipSeconds();
+  media.currentTime = Math.max(0, media.currentTime - skip);
+}
+
+function jumpForward() {
+  const skip = getSkipSeconds();
+  media.currentTime = Math.min(media.duration, media.currentTime + skip);
+}
+
+function openFilePicker() {
+  document.getElementById("filePicker").click();
+}
+
+document.getElementById("filePicker").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  
+  if (!file) return;
+
+  const isMedia =
+    file.type.startsWith("audio/") ||
+    file.type.startsWith("video/") ||
+    /\.(mp3|wav|ogg|m4a|aac|flac|mp4|webm|mov|mkv)$/i.test(file.name);
+
+  if (isMedia) {
+    const fileURL = URL.createObjectURL(file);
+    media.src = fileURL;
+    media.load();
+    media.play();
+    media.style.display ="block";
+    
+    // Tùy chỉnh giao diện audio/video
+    if (file.type.startsWith("audio/")) {
+      media.style.height = "40px";
+      media.style.width = "1000px"
+
+    } else {
+      media.style.height = "auto";
+      media.style.maxHeight = "300px";
+      media.style.width = "1000px"
+    }
+  } else {
+    alert("Vui lòng chọn file âm thanh hoặc video hợp lệ!");
+  }
+});
+
+</script>
+
+</body>
+</html>
